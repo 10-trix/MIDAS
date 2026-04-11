@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>MIDAS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0a0a0f;
+      --surface: #111118;
+      --surface2: #1a1a26;
+      --border: #2a2a40;
+      --accent: #7c3aed;
+      --accent2: #06b6d4;
+      --accent3: #f59e0b;
+      --text: #e8e8f0;
+      --muted: #6b6b8a;
+      --danger: #ef4444;
+      --success: #10b981;
+      --glow: rgba(124, 58, 237, 0.3);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      width: 360px;
+      min-height: 520px;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Syne', sans-serif;
+      overflow: hidden;
+    }
+
+    /* ── Header ── */
+    .header {
+      padding: 18px 20px 14px;
+      border-bottom: 1px solid var(--border);
+      position: relative;
+      background: linear-gradient(135deg, #0a0a0f 0%, #111020 100%);
+    }
+
+    .header::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, var(--accent), var(--accent2), var(--accent));
+    }
+
+    .logo-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo-icon {
+      width: 36px; height: 36px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+      box-shadow: 0 0 16px var(--glow);
+    }
+
+    .logo-text {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .logo-title {
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      background: linear-gradient(90deg, #fff, var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .logo-sub {
+      font-size: 9px;
+      color: var(--muted);
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      font-family: 'Space Mono', monospace;
+    }
+
+    .status-dot {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 10px;
+      font-family: 'Space Mono', monospace;
+      color: var(--muted);
+    }
+
+    .dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--muted);
+    }
+
+    .dot.offline { background: var(--danger); box-shadow: 0 0 6px var(--danger); }
+    .dot.online  { background: var(--success); box-shadow: 0 0 6px var(--success); animation: pulse 2s infinite; }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    /* ── Mode Tabs ── */
+    .mode-tabs {
+      display: flex;
+      margin: 16px 16px 0;
+      background: var(--surface);
+      border-radius: 10px;
+      padding: 4px;
+      border: 1px solid var(--border);
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 8px 6px;
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      font-family: 'Syne', sans-serif;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      border-radius: 7px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-align: center;
+    }
+
+    .tab-btn.active {
+      background: linear-gradient(135deg, var(--accent), #5b21b6);
+      color: #fff;
+      box-shadow: 0 2px 12px var(--glow);
+    }
+
+    .tab-btn:hover:not(.active) {
+      color: var(--text);
+      background: var(--surface2);
+    }
+
+    /* ── Panels ── */
+    .panel {
+      display: none;
+      padding: 16px;
+      animation: fadeIn 0.25s ease;
+    }
+
+    .panel.active { display: block; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Section Labels ── */
+    .section-label {
+      font-size: 9px;
+      font-family: 'Space Mono', monospace;
+      letter-spacing: 0.2em;
+      color: var(--muted);
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    /* ── Camera Preview ── */
+    .camera-box {
+      position: relative;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      height: 160px;
+      overflow: hidden;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .camera-box video {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      border-radius: 12px;
+      display: none;
+    }
+
+    .camera-placeholder {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+    }
+
+    .camera-placeholder .cam-icon {
+      font-size: 32px;
+      opacity: 0.4;
+    }
+
+    .camera-placeholder p {
+      font-size: 11px;
+      font-family: 'Space Mono', monospace;
+    }
+
+    .cam-overlay {
+      position: absolute;
+      top: 8px; left: 8px;
+      background: rgba(0,0,0,0.6);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 3px 8px;
+      font-size: 9px;
+      font-family: 'Space Mono', monospace;
+      color: var(--accent2);
+      display: none;
+    }
+
+    .cam-overlay.visible { display: block; }
+
+    .corner-tl, .corner-tr, .corner-bl, .corner-br {
+      position: absolute;
+      width: 14px; height: 14px;
+      border-color: var(--accent);
+      border-style: solid;
+      opacity: 0.6;
+    }
+    .corner-tl { top: 8px; left: 8px; border-width: 2px 0 0 2px; border-radius: 3px 0 0 0; }
+    .corner-tr { top: 8px; right: 8px; border-width: 2px 2px 0 0; border-radius: 0 3px 0 0; }
+    .corner-bl { bottom: 8px; left: 8px; border-width: 0 0 2px 2px; border-radius: 0 0 0 3px; }
+    .corner-br { bottom: 8px; right: 8px; border-width: 0 2px 2px 0; border-radius: 0 0 3px 0; }
+
+    /* ── Output Box ── */
+    .output-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 14px;
+      min-height: 56px;
+      margin-bottom: 10px;
+      position: relative;
+    }
+
+    .output-text {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text);
+      letter-spacing: 0.03em;
+      min-height: 24px;
+    }
+
+    .output-text.empty {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 400;
+      font-style: italic;
+    }
+
+    .output-tag {
+      position: absolute;
+      top: -8px; right: 10px;
+      background: var(--accent);
+      color: #fff;
+      font-size: 8px;
+      font-family: 'Space Mono', monospace;
+      padding: 2px 7px;
+      border-radius: 4px;
+      letter-spacing: 0.1em;
+    }
+
+    /* ── Language Toggle ── */
+    .lang-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .lang-btn {
+      flex: 1;
+      padding: 7px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--muted);
+      font-family: 'Space Mono', monospace;
+      font-size: 11px;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: center;
+    }
+
+    .lang-btn.active {
+      border-color: var(--accent2);
+      color: var(--accent2);
+      background: rgba(6, 182, 212, 0.08);
+    }
+
+    .lang-divider {
+      color: var(--muted);
+      font-size: 10px;
+    }
+
+    /* ── Action Buttons ── */
+    .btn-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .btn {
+      flex: 1;
+      padding: 10px 12px;
+      border: none;
+      border-radius: 9px;
+      font-family: 'Syne', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      letter-spacing: 0.04em;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), #5b21b6);
+      color: #fff;
+      box-shadow: 0 2px 14px var(--glow);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 20px var(--glow);
+    }
+
+    .btn-primary:active { transform: translateY(0); }
+
+    .btn-primary.recording {
+      background: linear-gradient(135deg, var(--danger), #b91c1c);
+      box-shadow: 0 2px 14px rgba(239,68,68,0.3);
+      animation: recordPulse 1.2s infinite;
+    }
+
+    @keyframes recordPulse {
+      0%, 100% { box-shadow: 0 2px 14px rgba(239,68,68,0.3); }
+      50% { box-shadow: 0 2px 22px rgba(239,68,68,0.6); }
+    }
+
+    .btn-secondary {
+      background: var(--surface2);
+      color: var(--muted);
+      border: 1px solid var(--border);
+    }
+
+    .btn-secondary:hover {
+      color: var(--text);
+      border-color: var(--accent);
+    }
+
+    .btn-icon { font-size: 14px; }
+
+    /* ── Audio Input (Panel 2) ── */
+    .audio-input-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+
+    .audio-tabs {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+
+    .audio-tab {
+      padding: 5px 10px;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--muted);
+      font-family: 'Space Mono', monospace;
+      font-size: 9px;
+      cursor: pointer;
+      transition: all 0.2s;
+      letter-spacing: 0.08em;
+    }
+
+    .audio-tab.active {
+      border-color: var(--accent3);
+      color: var(--accent3);
+      background: rgba(245, 158, 11, 0.08);
+    }
+
+    .text-input {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 12px;
+      color: var(--text);
+      font-family: 'Syne', sans-serif;
+      font-size: 13px;
+      resize: none;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .text-input:focus { border-color: var(--accent3); }
+    .text-input::placeholder { color: var(--muted); font-style: italic; }
+
+    /* ── Sign Avatar Preview ── */
+    .avatar-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      height: 140px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 10px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .avatar-canvas {
+      position: relative;
+      width: 80px; height: 110px;
+    }
+
+    /* Stick figure hand animation */
+    .hand-svg {
+      width: 80px; height: 80px;
+    }
+
+    .avatar-label {
+      position: absolute;
+      bottom: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 9px;
+      font-family: 'Space Mono', monospace;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    .current-sign-badge {
+      position: absolute;
+      top: 8px; right: 8px;
+      background: rgba(245, 158, 11, 0.15);
+      border: 1px solid var(--accent3);
+      border-radius: 6px;
+      padding: 3px 8px;
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--accent3);
+      font-family: 'Space Mono', monospace;
+    }
+
+    /* ── Waveform ── */
+    .waveform {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      height: 28px;
+      margin-bottom: 10px;
+    }
+
+    .wave-bar {
+      width: 3px;
+      border-radius: 2px;
+      background: var(--accent);
+      opacity: 0.3;
+      height: 6px;
+      transition: height 0.1s;
+    }
+
+    .wave-bar.active {
+      opacity: 1;
+      animation: waveAnim 0.8s ease-in-out infinite;
+    }
+
+    .wave-bar:nth-child(2) { animation-delay: 0.1s; }
+    .wave-bar:nth-child(3) { animation-delay: 0.2s; }
+    .wave-bar:nth-child(4) { animation-delay: 0.3s; }
+    .wave-bar:nth-child(5) { animation-delay: 0.15s; }
+    .wave-bar:nth-child(6) { animation-delay: 0.05s; }
+    .wave-bar:nth-child(7) { animation-delay: 0.25s; }
+
+    @keyframes waveAnim {
+      0%, 100% { height: 6px; }
+      50% { height: 22px; }
+    }
+
+    /* ── Settings Panel ── */
+    .settings-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .settings-row:last-child { border-bottom: none; }
+
+    .settings-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .settings-sub {
+      font-size: 9px;
+      color: var(--muted);
+      font-family: 'Space Mono', monospace;
+      margin-top: 2px;
+    }
+
+    /* Toggle switch */
+    .toggle {
+      position: relative;
+      width: 36px; height: 20px;
+    }
+
+    .toggle input { opacity: 0; width: 0; height: 0; }
+
+    .toggle-slider {
+      position: absolute;
+      inset: 0;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .toggle-slider::before {
+      content: '';
+      position: absolute;
+      width: 14px; height: 14px;
+      left: 2px; top: 2px;
+      background: var(--muted);
+      border-radius: 50%;
+      transition: 0.2s;
+    }
+
+    input:checked + .toggle-slider {
+      background: rgba(124,58,237,0.2);
+      border-color: var(--accent);
+    }
+
+    input:checked + .toggle-slider::before {
+      transform: translateX(16px);
+      background: var(--accent);
+    }
+
+    /* ── Footer ── */
+    .footer {
+      padding: 10px 16px 14px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .footer-tag {
+      font-size: 9px;
+      font-family: 'Space Mono', monospace;
+      color: var(--muted);
+      letter-spacing: 0.08em;
+    }
+
+    .footer-version {
+      font-size: 9px;
+      font-family: 'Space Mono', monospace;
+      color: var(--border);
+    }
+
+    /* ── Confidence bar ── */
+    .confidence-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .conf-label {
+      font-size: 9px;
+      font-family: 'Space Mono', monospace;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    .conf-bar-bg {
+      flex: 1;
+      height: 4px;
+      background: var(--surface2);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .conf-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      border-radius: 2px;
+      width: 0%;
+      transition: width 0.4s ease;
+    }
+
+    .conf-value {
+      font-size: 9px;
+      font-family: 'Space Mono', monospace;
+      color: var(--accent2);
+      width: 28px;
+      text-align: right;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ── Header ── -->
+  <div class="header">
+    <div class="logo-row">
+      <div class="logo-icon">🤟</div>
+      <div class="logo-text">
+        <span class="logo-title">MIDAS</span>
+        <span class="logo-sub">Sign Language Translator</span>
+      </div>
+      <div class="status-dot">
+        <div class="dot offline" id="statusDot"></div>
+        <span id="statusText">offline</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Mode Tabs ── -->
+  <div class="mode-tabs">
+    <button class="tab-btn active" id="tabSign2Speech">✋ Sign → Speech</button>
+    <button class="tab-btn" id="tabAudio2Sign">🎙️ Audio → Sign</button>
+    <button class="tab-btn" id="tabSettings">⚙️ Settings</button>
+  </div>
+
+  <!-- ═══════════════════════════════════
+       PANEL 1: Sign → Speech
+  ═══════════════════════════════════ -->
+  <div class="panel active" id="panel-sign2speech">
+
+    <!-- Language row -->
+    <div class="lang-row" style="margin-top:12px;">
+      <button class="lang-btn active" id="aslBtn">ASL</button>
+      <span class="lang-divider">↔</span>
+      <button class="lang-btn" id="islBtn">ISL</button>
+    </div>
+
+    <!-- Camera preview -->
+    <div class="section-label">Camera Feed</div>
+    <div class="camera-box" id="cameraBox">
+      <video id="videoFeed" autoplay muted playsinline></video>
+      <div class="camera-placeholder" id="camPlaceholder">
+        <span class="cam-icon">📷</span>
+        <p>Camera inactive</p>
+      </div>
+      <div class="cam-overlay" id="camOverlay">● LIVE</div>
+      <div class="corner-tl"></div>
+      <div class="corner-tr"></div>
+      <div class="corner-bl"></div>
+      <div class="corner-br"></div>
+    </div>
+
+    <!-- Confidence -->
+    <div class="confidence-row" id="confRow" style="display:none;">
+      <span class="conf-label">CONF</span>
+      <div class="conf-bar-bg"><div class="conf-bar-fill" id="confFill"></div></div>
+      <span class="conf-value" id="confValue">0%</span>
+    </div>
+
+    <!-- Output -->
+    <div class="section-label">Detected Sign</div>
+    <div class="output-box" style="margin-bottom:10px;">
+      <div class="output-tag">RECOGNIZED</div>
+      <div class="output-text empty" id="signOutput">Waiting for detection…</div>
+    </div>
+
+    <!-- Sentence builder -->
+    <div class="section-label">Sentence</div>
+    <div class="output-box">
+      <div class="output-tag">SENTENCE</div>
+      <div class="output-text empty" id="sentenceOutput">—</div>
+    </div>
+
+    <!-- Buttons -->
+    <div class="btn-row">
+      <button class="btn btn-primary" id="camBtn">
+        <span class="btn-icon">📷</span> Start Camera
+      </button>
+      <button class="btn btn-secondary" id="clearBtn">
+        <span class="btn-icon">🗑️</span> Clear
+      </button>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-secondary" id="speakBtn" style="flex:1;">
+        <span class="btn-icon">🔊</span> Speak Sentence
+      </button>
+    </div>
+
+  </div>
+
+  <!-- ═══════════════════════════════════
+       PANEL 2: Audio → Sign
+  ═══════════════════════════════════ -->
+  <div class="panel" id="panel-audio2sign">
+
+    <div style="margin-top:12px;"></div>
+
+    <!-- Language -->
+    <div class="lang-row">
+      <button class="lang-btn active" id="aslBtn2">ASL</button>
+      <span class="lang-divider">↔</span>
+      <button class="lang-btn" id="islBtn2">ISL</button>
+    </div>
+
+    <!-- Input method -->
+    <div class="section-label">Input Method</div>
+    <div class="audio-input-box">
+      <div class="audio-tabs">
+        <button class="audio-tab active" id="audioTabMic">🎙️ MIC</button>
+        <button class="audio-tab" id="audioTabText">⌨️ TEXT</button>
+        <button class="audio-tab" id="audioTabTab">🔊 TAB AUDIO</button>
+      </div>
+
+      <!-- Mic UI -->
+      <div id="micUI">
+        <div class="waveform" id="waveform">
+          <div class="wave-bar" id="w1"></div>
+          <div class="wave-bar" id="w2"></div>
+          <div class="wave-bar" id="w3"></div>
+          <div class="wave-bar" id="w4"></div>
+          <div class="wave-bar" id="w5"></div>
+          <div class="wave-bar" id="w6"></div>
+          <div class="wave-bar" id="w7"></div>
+        </div>
+        <button class="btn btn-primary" id="micBtn" style="width:100%;">
+          <span class="btn-icon">🎙️</span> Start Listening
+        </button>
+      </div>
+
+      <!-- Text UI -->
+      <div id="textUI" style="display:none;">
+        <textarea class="text-input" id="textInputField" rows="3" placeholder="Type something to translate to sign language…"></textarea>
+        <button class="btn btn-primary" id="translateBtn" style="width:100%;margin-top:8px;">
+          <span class="btn-icon">✋</span> Translate
+        </button>
+      </div>
+
+      <!-- Tab audio UI -->
+      <div id="tabUI" style="display:none;">
+        <p style="font-size:11px;color:var(--muted);font-family:'Space Mono',monospace;margin-bottom:10px;">Captures audio from the current browser tab.</p>
+        <button class="btn btn-primary" id="captureTabBtn" style="width:100%;">
+          <span class="btn-icon">🔊</span> Capture Tab Audio
+        </button>
+      </div>
+    </div>
+
+    <!-- Transcript -->
+    <div class="section-label">Transcript</div>
+    <div class="output-box" style="margin-bottom:10px;">
+      <div class="output-tag">HEARD</div>
+      <div class="output-text empty" id="transcriptOutput">—</div>
+    </div>
+
+    <!-- Avatar preview -->
+    <div class="section-label">Sign Avatar</div>
+    <div class="avatar-box">
+      <div class="avatar-canvas">
+        <svg class="hand-svg" id="handSvg" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+          <!-- Default open palm -->
+          <g id="handGroup" stroke="#7c3aed" stroke-width="2.5" stroke-linecap="round" fill="none" opacity="0.85">
+            <!-- Palm -->
+            <ellipse cx="40" cy="52" rx="16" ry="18" fill="rgba(124,58,237,0.08)" stroke="#7c3aed"/>
+            <!-- Thumb -->
+            <line x1="25" y1="50" x2="16" y2="38"/>
+            <line x1="16" y1="38" x2="12" y2="30"/>
+            <!-- Index -->
+            <line x1="32" y1="36" x2="30" y2="24"/>
+            <line x1="30" y1="24" x2="29" y2="14"/>
+            <!-- Middle -->
+            <line x1="40" y1="34" x2="40" y2="20"/>
+            <line x1="40" y1="20" x2="40" y2="10"/>
+            <!-- Ring -->
+            <line x1="48" y1="36" x2="50" y2="22"/>
+            <line x1="50" y1="22" x2="51" y2="12"/>
+            <!-- Pinky -->
+            <line x1="54" y1="42" x2="58" y2="30"/>
+            <line x1="58" y1="30" x2="60" y2="22"/>
+          </g>
+        </svg>
+      </div>
+      <div class="current-sign-badge" id="currentSignBadge">—</div>
+      <div class="avatar-label">MediaPipe Hand Avatar</div>
+    </div>
+
+  </div>
+
+  <!-- ═══════════════════════════════════
+       PANEL 3: Settings
+  ═══════════════════════════════════ -->
+  <div class="panel" id="panel-settings">
+    <div style="margin-top:12px;"></div>
+
+    <div class="settings-row">
+      <div>
+        <div class="settings-label">Backend URL</div>
+        <div class="settings-sub" id="backendUrlDisplay">localhost:5000</div>
+      </div>
+      <button class="btn btn-secondary" id="editBackendBtn" style="flex:none;padding:6px 10px;font-size:10px;">Edit</button>
+    </div>
+
+    <div class="settings-row">
+      <div>
+        <div class="settings-label">Auto-speak detected signs</div>
+        <div class="settings-sub">TTS on each confirmed sign</div>
+      </div>
+      <label class="toggle">
+        <input type="checkbox" id="autoSpeakToggle" checked>
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+
+    <div class="settings-row">
+      <div>
+        <div class="settings-label">Stability buffer</div>
+        <div class="settings-sub">Hold sign for ~1s to confirm</div>
+      </div>
+      <label class="toggle">
+        <input type="checkbox" id="bufferToggle" checked>
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+
+    <div class="settings-row">
+      <div>
+        <div class="settings-label">Show confidence score</div>
+        <div class="settings-sub">Display model confidence %</div>
+      </div>
+      <label class="toggle">
+        <input type="checkbox" id="confToggle" checked>
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+
+    <div class="settings-row">
+      <div>
+        <div class="settings-label">Camera flip</div>
+        <div class="settings-sub">Mirror webcam horizontally</div>
+      </div>
+      <label class="toggle">
+        <input type="checkbox" id="flipToggle" checked>
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+
+    <div class="settings-row">
+      <div>
+        <div class="settings-label">Default language</div>
+        <div class="settings-sub">ASL or ISL on open</div>
+      </div>
+      <div style="display:flex;gap:6px;">
+        <button class="lang-btn active" id="defASL" style="padding:4px 10px;font-size:9px;">ASL</button>
+        <button class="lang-btn" id="defISL" style="padding:4px 10px;font-size:9px;">ISL</button>
+      </div>
+    </div>
+
+    <div style="margin-top:16px;padding:12px;background:var(--surface);border:1px solid var(--border);border-radius:10px;">
+      <div class="section-label" style="margin-bottom:6px;">About</div>
+      <p style="font-size:10px;color:var(--muted);font-family:'Space Mono',monospace;line-height:1.7;">
+        MIDAS v1.0.0<br>
+        Dayananda Sagar College of Engineering<br>
+        B.E. Electronics & Instrumentation<br>
+        2024–28 Batch
+      </p>
+    </div>
+  </div>
+
+  <!-- ── Footer ── -->
+  <div class="footer">
+    <span class="footer-tag">MIDAS · DSCE · 2024</span>
+    <span class="footer-version">v1.0.0-dev</span>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
